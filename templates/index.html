@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Merger Model Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%); color: #fff; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { text-align: center; font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .subtitle { text-align: center; font-size: 1.1rem; opacity: 0.9; margin-bottom: 30px; }
+        .templates { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .template-card { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 15px; padding: 20px; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
+        .template-card:hover { transform: translateY(-5px); border-color: #4ade80; background: rgba(255,255,255,0.25); }
+        .template-card.active { border-color: #22d3ee; background: rgba(34,211,238,0.3); }
+        .template-card h3 { font-size: 1.2rem; margin-bottom: 10px; color: #4ade80; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .form-section { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 15px; padding: 25px; }
+        .form-section h2 { font-size: 1.5rem; margin-bottom: 20px; color: #fbbf24; border-bottom: 2px solid #fbbf24; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        input { width: 100%; padding: 10px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); font-size: 1rem; }
+        .btn { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px 40px; border: none; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px; transition: all 0.3s; }
+        .btn:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(16,185,129,0.4); }
+        .results { display: none; margin-top: 30px; }
+        .results.show { display: grid; }
+        .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .result-card { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 15px; padding: 20px; border-left: 5px solid #4ade80; }
+        .result-card h3 { font-size: 1.1rem; margin-bottom: 15px; color: #fbbf24; }
+        .result-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.2); }
+        .result-item:last-child { border-bottom: none; }
+        .result-value { font-weight: bold; color: #4ade80; }
+        .accretive { color: #10b981 !important; font-weight: bold; }
+        .dilutive { color: #ef4444 !important; font-weight: bold; }
+        .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-top: 30px; }
+        .chart-container { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border-radius: 15px; padding: 20px; }
+        canvas { max-height: 300px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Dynamic M&A Merger Model Dashboard</h1>
+        <p class="subtitle">Professional Financial Analysis Tool with Pre-built Templates</p>
+        
+        <div class="templates">
+            <div class="template-card" onclick="loadTemplate('tech_acquisition')">
+                <h3>💻 Tech Acquisition</h3>
+                <p>Large Cap tech company merger with synergy optimization</p>
+            </div>
+            <div class="template-card" onclick="loadTemplate('pharma_merger')">
+                <h3>💊 Pharma Merger</h3>
+                <p>Mid Cap pharmaceutical strategic consolidation</p>
+            </div>
+            <div class="template-card" onclick="loadTemplate('retail_buyout')">
+                <h3>🛒 Retail Buyout</h3>
+                <p>Small Cap retail business acquisition</p>
+            </div>
+            <div class="template-card" onclick="loadTemplate('bank_acquisition')">
+                <h3>🏦 Bank Acquisition</h3>
+                <p>Financial services strategic merger</p>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-section">
+                <h2>📊 Acquirer Data</h2>
+                <div class="form-group"><label>Revenue ($M)</label><input type="number" id="acq_revenue" value="5000"></div>
+                <div class="form-group"><label>EBITDA ($M)</label><input type="number" id="acq_ebitda" value="1500"></div>
+                <div class="form-group"><label>Net Income ($M)</label><input type="number" id="acq_net_income" value="1000"></div>
+                <div class="form-group"><label>Shares Outstanding (M)</label><input type="number" id="acq_shares" value="200"></div>
+                <div class="form-group"><label>Share Price ($)</label><input type="number" id="acq_price" value="50"></div>
+                <div class="form-group"><label>Debt ($M)</label><input type="number" id="acq_debt" value="2000"></div>
+                <div class="form-group"><label>Cash ($M)</label><input type="number" id="acq_cash" value="500"></div>
+                <div class="form-group"><label>Tax Rate</label><input type="number" step="0.01" id="acq_tax" value="0.25"></div>
+            </div>
+
+            <div class="form-section">
+                <h2>🎯 Target Data</h2>
+                <div class="form-group"><label>Revenue ($M)</label><input type="number" id="tgt_revenue" value="2000"></div>
+                <div class="form-group"><label>EBITDA ($M)</label><input type="number" id="tgt_ebitda" value="600"></div>
+                <div class="form-group"><label>Net Income ($M)</label><input type="number" id="tgt_net_income" value="400"></div>
+                <div class="form-group"><label>Shares Outstanding (M)</label><input type="number" id="tgt_shares" value="100"></div>
+                <div class="form-group"><label>Share Price ($)</label><input type="number" id="tgt_price" value="40"></div>
+                <div class="form-group"><label>Debt ($M)</label><input type="number" id="tgt_debt" value="500"></div>
+                <div class="form-group"><label>Cash ($M)</label><input type="number" id="tgt_cash" value="200"></div>
+                <div class="form-group"><label>Tax Rate</label><input type="number" step="0.01" id="tgt_tax" value="0.25"></div>
+            </div>
+
+            <div class="form-section">
+                <h2>💼 Deal Terms</h2>
+                <div class="form-group"><label>Purchase Price per Share ($)</label><input type="number" id="deal_price" value="45"></div>
+                <div class="form-group"><label>Cash Mix (%)</label><input type="number" id="deal_cash_mix" value="50"></div>
+                <div class="form-group"><label>Stock Mix (%)</label><input type="number" id="deal_stock_mix" value="50"></div>
+                <div class="form-group"><label>Synergies ($M)</label><input type="number" id="deal_synergies" value="300"></div>
+                <div class="form-group"><label>New Debt Financing ($M)</label><input type="number" id="deal_debt" value="800"></div>
+                <div class="form-group"><label>Interest Rate</label><input type="number" step="0.001" id="deal_interest" value="0.05"></div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="calculate()">🔍 Calculate Pro Forma Analysis</button>
+
+        <div class="results" id="results">
+            <div class="result-grid">
+                <div class="result-card">
+                    <h3>💰 Deal Valuation</h3>
+                    <div id="valuation"></div>
+                </div>
+                <div class="result-card">
+                    <h3>📈 EPS Impact</h3>
+                    <div id="eps"></div>
+                </div>
+                <div class="result-card">
+                    <h3>💵 Pro Forma Financials</h3>
+                    <div id="financials"></div>
+                </div>
+                <div class="result-card">
+                    <h3>📊 Leverage & Multiples</h3>
+                    <div id="leverage"></div>
+                </div>
+            </div>
+            <div class="charts">
+                <div class="chart-container"><canvas id="revenueChart"></canvas></div>
+                <div class="chart-container"><canvas id="epsChart"></canvas></div>
+                <div class="chart-container"><canvas id="ebitdaChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+let chartInstances = {};
+
+function loadTemplate(name) {
+    document.querySelectorAll('.template-card').forEach(el => el.classList.remove('active'));
+    event.target.closest('.template-card').classList.add('active');
+    
+    fetch(`/get_template/${name}`)
+        .then(res => res.json())
+        .then(data => {
+            const acq = data.acquirer, tgt = data.target, deal = data.deal;
+            document.getElementById('acq_revenue').value = acq.Revenue;
+            document.getElementById('acq_ebitda').value = acq.EBITDA;
+            document.getElementById('acq_net_income').value = acq.Net_Income;
+            document.getElementById('acq_shares').value = acq.Shares_Outstanding;
+            document.getElementById('acq_price').value = acq.Share_Price;
+            document.getElementById('acq_debt').value = acq.Debt;
+            document.getElementById('acq_cash').value = acq.Cash;
+            document.getElementById('acq_tax').value = acq.Tax_Rate;
+            
+            document.getElementById('tgt_revenue').value = tgt.Revenue;
+            document.getElementById('tgt_ebitda').value = tgt.EBITDA;
+            document.getElementById('tgt_net_income').value = tgt.Net_Income;
+            document.getElementById('tgt_shares').value = tgt.Shares_Outstanding;
+            document.getElementById('tgt_price').value = tgt.Share_Price;
+            document.getElementById('tgt_debt').value = tgt.Debt;
+            document.getElementById('tgt_cash').value = tgt.Cash;
+            document.getElementById('tgt_tax').value = tgt.Tax_Rate;
+            
+            document.getElementById('deal_price').value = deal.Purchase_Price_per_Share;
+            document.getElementById('deal_cash_mix').value = deal.Cash_Mix;
+            document.getElementById('deal_stock_mix').value = deal.Stock_Mix;
+            document.getElementById('deal_synergies').value = deal.Synergies;
+            document.getElementById('deal_debt').value = deal.New_Debt_Financing;
+            document.getElementById('deal_interest').value = deal.Interest_Rate;
+        });
+}
+
+function calculate() {
+    const data = {
+        acquirer: {
+            Revenue: +document.getElementById('acq_revenue').value,
+            EBITDA: +document.getElementById('acq_ebitda').value,
+            Net_Income: +document.getElementById('acq_net_income').value,
+            Shares_Outstanding: +document.getElementById('acq_shares').value,
+            Share_Price: +document.getElementById('acq_price').value,
+            Debt: +document.getElementById('acq_debt').value,
+            Cash: +document.getElementById('acq_cash').value,
+            Tax_Rate: +document.getElementById('acq_tax').value
+        },
+        target: {
+            Revenue: +document.getElementById('tgt_revenue').value,
+            EBITDA: +document.getElementById('tgt_ebitda').value,
+            Net_Income: +document.getElementById('tgt_net_income').value,
+            Shares_Outstanding: +document.getElementById('tgt_shares').value,
+            Share_Price: +document.getElementById('tgt_price').value,
+            Debt: +document.getElementById('tgt_debt').value,
+            Cash: +document.getElementById('tgt_cash').value,
+            Tax_Rate: +document.getElementById('tgt_tax').value
+        },
+        deal: {
+            Purchase_Price_per_Share: +document.getElementById('deal_price').value,
+            Cash_Mix: +document.getElementById('deal_cash_mix').value,
+            Stock_Mix: +document.getElementById('deal_stock_mix').value,
+            Synergies: +document.getElementById('deal_synergies').value,
+            New_Debt_Financing: +document.getElementById('deal_debt').value,
+            Interest_Rate: +document.getElementById('deal_interest').value
+        }
+    };
+
+    fetch('/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(response => {
+        const r = response.results;
+        const acq = response.acquirer;
+        const tgt = response.target;
+        
+        document.getElementById('valuation').innerHTML = `
+            <div class="result-item"><span>Target Equity Value</span><span class="result-value">$${r.target_equity_value.toLocaleString()}M</span></div>
+            <div class="result-item"><span>Target Enterprise Value</span><span class="result-value">$${r.target_ev.toLocaleString()}M</span></div>
+            <div class="result-item"><span>Deal Premium</span><span class="result-value">${r.deal_premium}%</span></div>
+            <div class="result-item"><span>Cash Payment</span><span class="result-value">$${r.cash_payment.toLocaleString()}M</span></div>
+            <div class="result-item"><span>Stock Payment</span><span class="result-value">$${r.stock_payment.toLocaleString()}M</span></div>
+        `;
+        
+        const statusClass = r.deal_status === 'Accretive' ? 'accretive' : 'dilutive';
+        document.getElementById('eps').innerHTML = `
+            <div class="result-item"><span>Acquirer EPS</span><span class="result-value">$${r.acquirer_eps}</span></div>
+            <div class="result-item"><span>Pro Forma EPS</span><span class="result-value">$${r.pro_forma_eps}</span></div>
+            <div class="result-item"><span>EPS Impact</span><span class="result-value">$${r.eps_impact}</span></div>
+            <div class="result-item"><span>EPS Impact %</span><span class="result-value">${r.eps_impact_pct}%</span></div>
+            <div class="result-item"><span>Deal Status</span><span class="result-value ${statusClass}">${r.deal_status}</span></div>
+        `;
+        
+        document.getElementById('financials').innerHTML = `
+            <div class="result-item"><span>Pro Forma Revenue</span><span class="result-value">$${r.pf_revenue.toLocaleString()}M</span></div>
+            <div class="result-item"><span>Pro Forma EBITDA</span><span class="result-value">$${r.pf_ebitda.toLocaleString()}M</span></div>
+            <div class="result-item"><span>Pro Forma Net Income</span><span class="result-value">$${r.pro_forma_net_income.toLocaleString()}M</span></div>
+            <div class="result-item"><span>EBITDA Margin</span><span class="result-value">${r.pf_ebitda_margin}%</span></div>
+        `;
+        
+        document.getElementById('leverage').innerHTML = `
+            <div class="result-item"><span>Combined Debt</span><span class="result-value">$${r.combined_debt.toLocaleString()}M</span></div>
+            <div class="result-item"><span>Net Debt</span><span class="result-value">$${r.net_debt.toLocaleString()}M</span></div>
+            <div class="result-item"><span>Leverage Ratio</span><span class="result-value">${r.leverage_ratio}x</span></div>
+            <div class="result-item"><span>Pro Forma EV/EBITDA</span><span class="result-value">${r.pf_ev_ebitda}x</span></div>
+        `;
+        
+        document.getElementById('results').classList.add('show');
+        renderCharts(acq, tgt, r);
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    });
+}
+
+function renderCharts(acq, tgt, results) {
+    Object.values(chartInstances).forEach(chart => chart.destroy());
+    
+    const ctx1 = document.getElementById('revenueChart').getContext('2d');
+    chartInstances.revenue = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: ['Acquirer', 'Target', 'Pro Forma'],
+            datasets: [{
+                label: 'Revenue ($M)',
+                data: [acq.Revenue, tgt.Revenue, results.pf_revenue],
+                backgroundColor: ['#10b981', '#f59e0b', '#6366f1']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true }
+    });
+    
+    const ctx2 = document.getElementById('epsChart').getContext('2d');
+    chartInstances.eps = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: ['Acquirer EPS', 'Pro Forma EPS'],
+            datasets: [{
+                label: 'EPS ($)',
+                data: [results.acquirer_eps, results.pro_forma_eps],
+                backgroundColor: results.deal_status === 'Accretive' ? ['#10b981', '#059669'] : ['#ef4444', '#dc2626']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true }
+    });
+    
+    const ctx3 = document.getElementById('ebitdaChart').getContext('2d');
+    chartInstances.ebitda = new Chart(ctx3, {
+        type: 'doughnut',
+        data: {
+            labels: ['Acquirer EBITDA', 'Target EBITDA', 'Synergies'],
+            datasets: [{
+                data: [acq.EBITDA, tgt.EBITDA, results.pf_ebitda - acq.EBITDA - tgt.EBITDA],
+                backgroundColor: ['#10b981', '#f59e0b', '#6366f1']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: true }
+    });
+}
+    </script>
+</body>
+</html>
